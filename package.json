@@ -1,0 +1,139 @@
+{
+   "name": "context-pilot",
+   "version": "1.1.4",
+   "publisher": "CryptiTalk",
+   "description": "Tools for collecting contexts and gaining insight from LLM.",
+   "categories": [
+     "Machine Learning",
+     "Testing",
+     "Debuggers"
+   ],
+   "keywords": [
+     "Productivity",
+     "GenAI",
+     "Context"
+   ],
+   "engines": {
+     "vscode": "^1.47.3"
+   },
+   "icon": "resources/favicon.png",
+   "repository": {
+     "type": "git",
+     "url": "https://github.com/your-username/your-repository.git"
+   },
+   "main": "./ext.js",
+   "contributes": {
+     "configuration": [
+       {
+         "title": "Context Pilot Settings",
+         "properties": {
+           "contextCode": {
+             "type": "string",
+             "default": "",
+             "description": "Stores context code for the extension."
+           },
+           "tempContextCode": {
+             "type": "string",
+             "default": "",
+             "description": "Stores temp context code to send to LLM."
+           },
+           "secretKey": {
+             "type": "string",
+             "default": "",
+             "description": "Stores secret key for external services."
+           }
+         }
+       }
+     ],
+     "commands": [
+       {
+         "command": "extension.addSelectedContext",
+         "title": "Add Selected Context"
+       },
+       {
+         "command": "extension.addClipboardContext",
+         "title": "Add Clipboard Context"
+       },
+       {
+         "command": "extension.getContext",
+         "title": "Get Context"
+       },
+       {
+        "command": "extension.addImgContext",
+        "title": "Add Image Context"
+       },
+       {
+         "command": "extension.addImgContext",
+         "title": "Add Image Context"
+       },
+       {
+         "command": "extension.addSecretKey",
+         "title": "Add Secret Key"
+       }
+     ],
+     "menus": {
+       "editor/context": [
+         {
+           "submenu": "contextpilot.submenu",
+           "group": "9_contextpilot"
+         }
+       ],
+       "contextpilot.submenu": [
+         {
+           "submenu": "extension.addContextSubmenu",
+           "group": "9_contextpilot"
+         },
+         {
+          "submenu": "extension.addFileContextSubmenu",
+          "group": "9_contextpilot"
+         },
+         {
+           "command": "extension.addSecretKey"
+         },
+         {
+           "command": "extension.getContext"
+         }
+       ],
+       "extension.addContextSubmenu": [
+         {
+           "command": "extension.addSelectedContext"
+         },
+         {
+           "command": "extension.addClipboardContext"
+          }
+       ],
+       "extension.addFileContextSubmenu": [
+        {
+          "command": "extension.addImgContext"
+        },
+        {
+          "command": "extension.addSoundContext"
+         }
+      ]
+     },
+     "submenus": [
+       {
+         "id": "contextpilot.submenu",
+         "label": "ContextPilot"
+       },
+       {
+         "id": "extension.addContextSubmenu",
+         "label": "Add Context"
+       },
+       {
+        "id": "extension.addFileContextSubmenu",
+        "label": "Add File Context"
+      }
+     ]
+   },
+   "activationEvents": [
+     "onStartupFinished"
+   ],
+   "dependencies": {
+     "axios": "^1.6.2",
+     "difflib": "^0.2.4",
+     "eventsource": "^2.0.2",
+     "ignore": "^5.3.1",
+     "showdown": "^2.1.0"
+  }
+}
