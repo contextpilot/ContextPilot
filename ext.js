@@ -108,127 +108,132 @@ function activate(context) {
   });
 
   let getDisposable = vscode.commands.registerCommand('extension.getContext', () => {
-    const contextCode = vscode.workspace.getConfiguration().get('contextCode');
-    if (contextCode) {
-      // Parse the context code JSON
-      try {
-        const contextData = JSON.parse(contextCode);
-        if (panel) {
-          // If the panel already exists, just update its content and show the webview
-          panel.webview.html = getWebviewContent(contextData);
-          panel.reveal(vscode.ViewColumn.One);  // Ensure the panel is shown in the specified column
-        } else {
-          // Create and show a new webview
-          panel = vscode.window.createWebviewPanel(
-            'contextCodeView', // Identifies the type of the webview. Used internally
-            'Context Code', // Title of the panel displayed to the user
-            vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-            {
-              enableScripts: true,
-              retainContextWhenHidden: true, // Add this line to retain the context
-              sandboxOptions: {
-                allowScripts: true
-              }
-            } // Webview options.
-          );
+    let contextCode = vscode.workspace.getConfiguration().get('contextCode');
 
-          // Set the webview's HTML content
-          panel.webview.html = getWebviewContent(contextData);
+    if (typeof contextCode !== 'string' || contextCode.trim() === '') {
+      contextCode = '[]'; // Default to an empty array or empty string based on what getWebviewContent expects
+    }
 
-          panel.onDidDispose(() => {
-            panel = null;
-          });
+    try {
+      const contextData = JSON.parse(contextCode);
 
-          panel.webview.onDidReceiveMessage(
-            message => {
-              switch (message.command) {
-                case 'delete':
-                  handleDelete(message.context);
-                  break;
-                case 'select':
-                  handleSelect(message.context, true);
-                  break;
-                case 'unselect':
-                  handleSelect(message.context, false);
-                  break;
-                case 'saveDefinition':
-                  handleSaveDefinition(
-                    (currentPage - 1) * 5 + message.index,
-                    message.newDefinition,
-                    message.newContext
-                  );
-                  break;
-                case 'changePage':
-                  currentPage = message.newPage;
-                  updateWebview(panel, (currentPage = currentPage));
-                  break;
-                case 'submitInput':
-                  if (message.service === 'chatGpt') {
-                    handleGPTSubmitInput(panel, message.inputText, context);
-                  } else if (message.service === 'gemini') {
-                    handleGeminiSubmitInput(panel, message.inputText, context);
-                  } else {
-                    console.error('Unknown service:', message.service);
-                  }
-                  break;
-                case 'showContext':
-                  handleShowContext(panel, message.service);
-                  break;
-                case 'clearContext':
-                  handleClearContext(panel, message.service);
-                  break;
-                case 'showSession':
-                  handleShowSession(panel, message.service);
-                  break;
-                case 'clearSession':
-                  handleClearSession(panel, message.service);
-                  break;
-                case 'navigateChat':
-                  const activeService = message.service;
-                  const direction = message.direction;
-                  const serviceSessionData =
-                    activeService === 'chatGpt'
-                      ? global.chatSessionGPT
-                      : global.chatSessionGemini;
-                  // Calculate new index based on direction
-                  let newIndex = global.currentChatIndex[activeService];
-                  if (direction === 'prev') {
-                    newIndex = Math.max(0, newIndex - 1);
-                  } else if (direction === 'next') {
-                    newIndex = Math.min(
-                      serviceSessionData.length - 1,
-                      newIndex + 1
-                    );
-                  }
-                  global.currentChatIndex[activeService] = newIndex;
-                  handleShowSession(panel, activeService);
-                  break;
-                case 'applySuggestions': // FIXME this is unused
-                  handleApplySuggestions(panel, message.service);
-                  break;
-                case 'applyOneSuggestion':
-                  handleApplyOneSuggestion(panel, message.newCode, message.id);
-                  break;
-                case 'executeSuggestion':
-                  executeCommandFromSuggestion(message.newCode);
-                  break;
-                case 'refreshDefinition':
-                  handleRefreshDefinition(
-                    (currentPage - 1) * 5 + message.index
-                  );
-                  break;
-              }
-            },
-            undefined,
-            context.subscriptions
-          );
-        }
-      } catch (e) {
-        vscode.window.showErrorMessage('Failed to parse context code');
-        console.error('Error parsing contextCode:', e);
+      if (!Array.isArray(contextData)) {
+        throw new Error('Parsed context data is not an array');
       }
-    } else {
-      vscode.window.showErrorMessage('No context code found');
+
+      if (panel) {
+        // If the panel already exists, just update its content and show the webview
+        panel.webview.html = getWebviewContent(contextData);
+        panel.reveal(vscode.ViewColumn.One); // Ensure the panel is shown in the specified column
+      } else {
+        // Create and show a new webview
+        panel = vscode.window.createWebviewPanel(
+          'contextCodeView', // Identifies the type of the webview. Used internally
+          'Context Code', // Title of the panel displayed to the user
+          vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+          {
+            enableScripts: true,
+            retainContextWhenHidden: true, // Add this line to retain the context
+            sandboxOptions: {
+              allowScripts: true
+            }
+          } // Webview options.
+        );
+
+        // Set the webview's HTML content
+        panel.webview.html = getWebviewContent(contextData);
+
+        panel.onDidDispose(() => {
+          panel = null;
+        });
+
+        panel.webview.onDidReceiveMessage(
+          message => {
+            switch (message.command) {
+              case 'delete':
+                handleDelete(message.context);
+                break;
+              case 'select':
+                handleSelect(message.context, true);
+                break;
+              case 'unselect':
+                handleSelect(message.context, false);
+                break;
+              case 'saveDefinition':
+                handleSaveDefinition(
+                  (currentPage - 1) * 5 + message.index,
+                  message.newDefinition,
+                  message.newContext
+                );
+                break;
+              case 'changePage':
+                currentPage = message.newPage;
+                updateWebview(panel, (currentPage = currentPage));
+                break;
+              case 'submitInput':
+                if (message.service === 'chatGpt') {
+                  handleGPTSubmitInput(panel, message.inputText, context);
+                } else if (message.service === 'gemini') {
+                  handleGeminiSubmitInput(panel, message.inputText, context);
+                } else {
+                  console.error('Unknown service:', message.service);
+                }
+                break;
+              case 'showContext':
+                handleShowContext(panel, message.service);
+                break;
+              case 'clearContext':
+                handleClearContext(panel, message.service);
+                break;
+              case 'showSession':
+                handleShowSession(panel, message.service);
+                break;
+              case 'clearSession':
+                handleClearSession(panel, message.service);
+                break;
+              case 'navigateChat':
+                const activeService = message.service;
+                const direction = message.direction;
+                const serviceSessionData =
+                  activeService === 'chatGpt'
+                    ? global.chatSessionGPT
+                    : global.chatSessionGemini;
+                // Calculate new index based on direction
+                let newIndex = global.currentChatIndex[activeService];
+                if (direction === 'prev') {
+                  newIndex = Math.max(0, newIndex - 1);
+                } else if (direction === 'next') {
+                  newIndex = Math.min(
+                    serviceSessionData.length - 1,
+                    newIndex + 1
+                  );
+                }
+                global.currentChatIndex[activeService] = newIndex;
+                handleShowSession(panel, activeService);
+                break;
+              case 'applySuggestions': // FIXME this is unused
+                handleApplySuggestions(panel, message.service);
+                break;
+              case 'applyOneSuggestion':
+                handleApplyOneSuggestion(panel, message.newCode, message.id);
+                break;
+              case 'executeSuggestion':
+                executeCommandFromSuggestion(message.newCode);
+                break;
+              case 'refreshDefinition':
+                handleRefreshDefinition(
+                  (currentPage - 1) * 5 + message.index
+                );
+                break;
+            }
+          },
+          undefined,
+          context.subscriptions
+        );
+      }
+    } catch (e) {
+      vscode.window.showErrorMessage('Failed to parse context code');
+      console.error('Error parsing contextCode:', e);
     }
   });
 

@@ -56,10 +56,9 @@ async function initEventStream(panel, endpoint, message, command, chatResponse, 
   let response = await postDataToAPI(endpoint.replace('streamchat', 'streaminit'), { 'Content-Type': 'application/json' }, message);
 
   // Fetch the secret key from the configuration
-  const secretKey = vscode.workspace.getConfiguration().get('secretKey');
+  let secretKey = vscode.workspace.getConfiguration().get('secretKey');
   if (!secretKey) {
-    vscode.window.showErrorMessage('Secret key is not configured. Please add it using the "Add Secret Key" command.');
-    return;
+    secretKey = 'dummy'
   }
 
   // Initialize the EventSource with the encoded JSON in the URL query parameter
