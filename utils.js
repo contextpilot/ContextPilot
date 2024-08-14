@@ -58,11 +58,11 @@ function formatMarkdown(markdownText, isCode = false) {
             const codeWithBackticks = `\`\`\`\n${code}\n\`\`\``;
             // Creating an HTML snippet for the code block without converting to HTML yet.
             const buttonHtml = `<button id="apply-${id}" onclick="applyOneSuggestion('${id}')">Apply Suggestion</button>`;
+            const copyButtonHtml = `<button onclick="copyToClipboard('${id}')">Copy</button>`;
             const hiddenCodeBlock = `<div id="${id}" style="display: none;">${code}</div>`;
             const executeButtonHtml = `<button onclick="executeSuggestion('${id}')" style="margin-left: 10px;">Execute</button>`;
-            return codeWithBackticks + buttonHtml + executeButtonHtml + hiddenCodeBlock;
+            return codeWithBackticks + buttonHtml + copyButtonHtml + executeButtonHtml + hiddenCodeBlock;
         });
-        // Convert the entire prepared Markdown content to HTML at once
         html = converter.makeHtml(formattedMarkdown);
     }
     return html;

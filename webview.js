@@ -666,6 +666,19 @@ function getWebviewContent(contextData, currentPage = 1) {
                 id: id
             });
           }
+          function copyToClipboard(id) {
+              const hiddenCodeBlock = document.getElementById(id);
+              if (hiddenCodeBlock) {
+                  const code = hiddenCodeBlock.innerText;
+                  navigator.clipboard.writeText(code)
+                      .then(() => {
+                          console.log('Code copied to clipboard successfully.');
+                      })
+                      .catch(err => {
+                          console.error('Failed to copy code to clipboard: ', err);
+                      });
+              }
+          }
           function executeSuggestion(id) {
             const hiddenCodeBlock = document.getElementById(id);
             const codeToApply = hiddenCodeBlock.innerText;
