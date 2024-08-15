@@ -659,7 +659,8 @@ function getWebviewContent(contextData, currentPage = 1) {
           }
           function applyOneSuggestion(id) {
             const hiddenCodeBlock = document.getElementById(id);
-            const codeToApply = hiddenCodeBlock.innerText;
+            const encodedCode = hiddenCodeBlock.textContent;
+            const codeToApply = decodeURIComponent(escape(atob(encodedCode)));
             vscode.postMessage({
                 command: 'applyOneSuggestion',
                 newCode: codeToApply,
@@ -669,8 +670,9 @@ function getWebviewContent(contextData, currentPage = 1) {
           function copyToClipboard(id) {
               const hiddenCodeBlock = document.getElementById(id);
               if (hiddenCodeBlock) {
-                  const code = hiddenCodeBlock.innerText;
-                  navigator.clipboard.writeText(code)
+                  const encodedCode = hiddenCodeBlock.textContent;
+                  const decodedCode = decodeURIComponent(escape(atob(encodedCode)));
+                  navigator.clipboard.writeText(decodedCode)
                       .then(() => {
                           console.log('Code copied to clipboard successfully.');
                       })
@@ -680,8 +682,8 @@ function getWebviewContent(contextData, currentPage = 1) {
               }
           }
           function executeSuggestion(id) {
-            const hiddenCodeBlock = document.getElementById(id);
-            const codeToApply = hiddenCodeBlock.innerText;
+            const encodedCode = hiddenCodeBlock.textContent;
+            const codeToApply = decodeURIComponent(escape(atob(encodedCode)));
             vscode.postMessage({
                 command: 'executeSuggestion',
                 newCode: codeToApply

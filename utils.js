@@ -31,8 +31,6 @@ function formatMarkdown(markdownText, isCode = false) {
     const converter = new showdown.Converter();
     let html;
     if (isCode) {
-        // If directly formatting a piece of code, enclose in Markdown code block syntax
-        // Regex to detect base64 images and replace with img tag
         const base64ImageRegex = /data:image\/(png|jpg|jpeg|gif);base64,([A-Za-z0-9+/=]+)\s*/g;
         let isImage = false;
         let formattedMarkdown = markdownText.replace(base64ImageRegex, (match, type, base64) => {
@@ -47,19 +45,17 @@ function formatMarkdown(markdownText, isCode = false) {
             return html;
         }
         return formattedMarkdown;
-
     } else {
-        // Regex to capture optional language specifier and the code
         const codeBlockRegex = /```(?:[a-zA-Z]+)?\n([\s\S]*?)\n```/gm;
         let formattedMarkdown = markdownText.replace(codeBlockRegex, (match, code, offset) => {
-            // Generate a unique identifier for each code block
             const id = `codeblock-${offset}`;
-            // Prepare the code with backticks
+            const encodedCode = btoa(unescape(encodeURIComponent(code)));
+            console.log("code", code)
+            console.log("encode", encodedCode)
             const codeWithBackticks = `\`\`\`\n${code}\n\`\`\``;
-            // Creating an HTML snippet for the code block without converting to HTML yet.
             const buttonHtml = `<button id="apply-${id}" onclick="applyOneSuggestion('${id}')">Apply Suggestion</button>`;
             const copyButtonHtml = `<button onclick="copyToClipboard('${id}')">Copy</button>`;
-            const hiddenCodeBlock = `<div id="${id}" style="display: none;">${code}</div>`;
+            const hiddenCodeBlock = `<div id="${id}" style="display: none;">${encodedCode}</div>`;
             const executeButtonHtml = `<button onclick="executeSuggestion('${id}')" style="margin-left: 10px;">Execute</button>`;
             return codeWithBackticks + buttonHtml + copyButtonHtml + executeButtonHtml + hiddenCodeBlock;
         });
