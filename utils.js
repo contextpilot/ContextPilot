@@ -106,7 +106,74 @@ function postMessageToWebview(panel, command, htmlContent) {
 }
 
 
-// More utility functions...
+function maskSensitiveInfo(context) {
+    const config = vscode.workspace.getConfiguration();
+    let originalValues = {};
+
+    try {
+        // Parse the context as a JSON object
+        let parsedContext = JSON.parse(context);
+
+        // Mask passwords and keep the original
+        traverseAndMask(parsedContext, originalValues);
+
+        // Store the original values in configuration
+        config.update('sensitiveInfo.originalValues', JSON.stringify(originalValues), vscode.ConfigurationTarget.Global);
+
+        // Convert back to JSON string
+        return JSON.stringify(parsedContext, null, 2);
+    } catch (err) {
+        console.error('Error masking sensitive info:', err);
+        return context; // Return the original context if parsing fails
+    }
+}
+
+function traverseAndMask(obj, originalValues, path = '') {
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            const currentPath = path ? `${path}.${key}` : key;
+            if (key.toLowerCase() === 'password' || key.toLowerCase() === 'host') {
+                originalValues[currentPath] = obj[key]; // Store the original value
+                obj[key] = '***'; // Mask the password
+            } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                traverseAndMask(obj[key], originalValues, currentPath); // Recursively traverse nested objects
+            }
+        }
+    }
+}
+
+function recoverSensitiveInfo(context) {
+    const config = vscode.workspace.getConfiguration();
+    try {
+        // Retrieve the original values from configuration
+        const originalValues = JSON.parse(config.get('sensitiveInfo.originalValues', '{}'));
+
+        // Parse the context as a JSON object
+        let parsedContext = JSON.parse(context);
+
+        // Recover passwords and hosts
+        traverseAndRecover(parsedContext, originalValues);
+
+        // Convert back to JSON string
+        return JSON.stringify(parsedContext, null, 2);
+    } catch (err) {
+        console.error('Error recovering sensitive info:', err);
+        return context; // Return the original context if parsing fails
+    }
+}
+
+function traverseAndRecover(obj, originalValues, path = '') {
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            const currentPath = path ? `${path}.${key}` : key;
+            if (originalValues[currentPath] !== undefined) {
+                obj[key] = originalValues[currentPath]; // Recover the original value
+            } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                traverseAndRecover(obj[key], originalValues, currentPath); // Recursively traverse nested objects
+            }
+        }
+    }
+}
 
 module.exports = {
     formatMarkdown,
@@ -114,6 +181,7 @@ module.exports = {
     handleError,
     postMessageToWebview,
     getRelativeFilePath,
-    executeCommandFromSuggestion
-    // Export other utilities as needed...
+    executeCommandFromSuggestion,
+    maskSensitiveInfo,
+    recoverSensitiveInfo
 };

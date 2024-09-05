@@ -21,10 +21,35 @@ function manageChatSessionEntries(chatSession, maxSessionLength) {
 
 
 // Helper function to create the prompt
-function createPrompt(tempContext, inputText) {
+async function createPrompt(tempContext, inputText) {
   const isBase64Image = (context) => /^data:image\/[a-zA-Z]+;base64,/.test(context);
-  let txt = ''
-  let img_url = ''
+
+  const isJsonObject = str => {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  let txt = '';
+  let img_url = '';
+  // Replace database connection info with schema
+  for (let i = 0; i < tempContext.length; i++) {
+    if (isJsonObject(tempContext[i].context)) {
+      const jsonContent = JSON.parse(tempContext[i].context);
+      if (jsonContent.dbtype && jsonContent.dbname && jsonContent.user && jsonContent.password && jsonContent.host && jsonContent.port) {
+        try {
+          const { data } = await axios.post('https://main-wjaxre4ena-uc.a.run.app/dbschema', jsonContent);
+          tempContext[i].context = formatDBSchema(data);
+        } catch (error) {
+          console.error('Failed to retrieve database schema:', error);
+          tempContext[i].context = 'Failed to retrieve database schema.';
+        }
+        break;  // Assuming only one item with db connection info
+      }
+    } 
+  }
 
   // Only add inputText to the non-image parts
   if (!tempContext.some(item => isBase64Image(item.context))) {
@@ -42,6 +67,17 @@ function createPrompt(tempContext, inputText) {
     console.log(ret);
     return ret;
   }
+}
+
+function formatDBSchema(schema) {
+  let formattedSchema = '';
+  for (const [tableName, columns] of Object.entries(schema.public)) {
+    formattedSchema += `Table: ${tableName}\n`;
+    columns.forEach(column => {
+      formattedSchema += `  Column: ${column.column_name}, Type: ${column.data_type}, Nullable: ${column.is_nullable}\n`;
+    });
+  }
+  return formattedSchema;
 }
 
 // Helper function to post data to an API
@@ -156,7 +192,7 @@ async function handleChatAPIInput(panel, apiInfo, inputText, context, chatSessio
   manageChatSessionEntries(chatSession, maxSessionLength);
 
   // Add the new user input to the chatSession
-  const prompt = createPrompt(tempContext, inputText);
+  const prompt = await createPrompt(tempContext, inputText);
   if (apiName == "Gemini") {
     chatSession.push({
       role: 'user',

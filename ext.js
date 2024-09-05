@@ -19,10 +19,13 @@ const {
   handleGPTSubmitInput,
   handleGeminiSubmitInput,
 } = require('./chat');
-const { handleAddImgContext } = require('./file_ctx');
+const { handleAddImgContext,
+        handleAddDbContext
+ } = require('./file_ctx');
 const {
   getRelativeFilePath,
   executeCommandFromSuggestion,
+  maskSensitiveInfo
 } = require('./utils');
 const {
   handleApplySuggestions,
@@ -115,7 +118,11 @@ function activate(context) {
     }
 
     try {
-      const contextData = JSON.parse(contextCode);
+      let contextData = JSON.parse(contextCode);
+      contextData = contextData.map(item => ({
+        ...item,
+        context: maskSensitiveInfo(item.context)
+      }));
 
       if (!Array.isArray(contextData)) {
         throw new Error('Parsed context data is not an array');
@@ -287,9 +294,11 @@ function activate(context) {
   });
 
   let addImgContextDisposable = vscode.commands.registerCommand('extension.addImgContext', handleAddImgContext);
+  let addDbContextDisposable = vscode.commands.registerCommand('extension.addDbContext', handleAddDbContext);
+
   let addSecretKeyDisposable = vscode.commands.registerCommand('extension.addSecretKey', addSecretKey);
 
-  context.subscriptions.push(addDisposable, getDisposable, addClipboardDisposable, addImgContextDisposable, addSecretKeyDisposable);
+  context.subscriptions.push(addDisposable, getDisposable, addClipboardDisposable, addImgContextDisposable, addDbContextDisposable, addSecretKeyDisposable);
 }
 
 exports.activate = activate;

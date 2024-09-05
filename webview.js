@@ -56,6 +56,7 @@ function handleSelect(contextText, isSelected) {
 
   // Decode the context text (if it's encoded)
   contextText = decodeURIComponent(contextText);
+  contextText = utils.recoverSensitiveInfo(contextText);
 
   // Find the item with the matching context
   const selectedItem = currentContext.find(item => item.context === contextText);
