@@ -202,8 +202,23 @@ async function handleApplyOneSuggestion(panel, newCode, id) {
                     }
                 }).then((saveUri) => {
                     if (saveUri) {
-                        // Create the new file with the applied changes
-                        processFile(panel, saveUri.fsPath, '', newCode, id);
+                        const newFilePath = saveUri.fsPath;
+                
+                        fs.readFile(newFilePath, 'utf-8', (err, existingData) => {
+                            if (err) {
+                                if (err.code === 'ENOENT') {
+                                    // File doesn't exist, proceed to create it with newCode
+                                    processFile(panel, newFilePath, '', newCode, id);
+                                } else {
+                                    // An unexpected error occurred
+                                    vscode.window.showErrorMessage(`Failed to check the file: ${err.message}`);
+                                    console.error('Error accessing file:', err);
+                                }
+                            } else {
+                                // File exists, use its existing content
+                                processFile(panel, newFilePath, existingData, newCode, id);
+                            }
+                        });
                     } else {
                         vscode.window.showWarningMessage('File save cancelled.');
                     }
