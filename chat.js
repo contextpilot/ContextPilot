@@ -8,6 +8,15 @@ const path = require('path');
 let chatGptResponse = '';
 let chatGeminiResponse = '';
 
+global.chatSessionGPT = [];
+global.chatSessionGemini = [];
+global.chatSessionClaude = [];
+global.currentChatIndex = {
+  chatGpt: 0,
+  gemini: 0,
+  claude: 0,
+};
+
 // Helper function to manage chat session entries
 function manageChatSessionEntries(chatSession, maxSessionLength) {
   while (chatSession.length >= maxSessionLength) {
@@ -19,6 +28,60 @@ function manageChatSessionEntries(chatSession, maxSessionLength) {
   }
 }
 
+function getCommandByModel(model) {
+  let command = 'updateChatGptOutput'; // default command
+  
+  switch (model) {
+    case 'gemini-2.0-flash-exp':
+      command = 'updateGeminiOutput';
+      break;
+    case 'claude-3-5-sonnet-latest':
+      command = 'updateClaudeOutput';
+      break;
+  }
+  
+  return command;
+}
+
+function getCommandByService(service) {
+  let command = 'updateChatGptOutput'; // default command
+  
+  switch (service) {
+    case 'gemini':
+      command = 'updateGeminiOutput';
+      break;
+    case 'claude':
+      command = 'updateClaudeOutput';
+      break;
+  }
+  
+  return command;
+}
+
+function getSessionDataByService(service) {
+  let sessionData = global.chatSessionGPT
+  
+  switch (service) {
+    case 'gemini':
+      sessionData =  global.chatSessionGemini
+      break;
+    case 'claude':
+      sessionData =  global.chatSessionClaude
+      break;
+  }
+  
+  return sessionData;
+}
+
+function clearSessionDataByService(service) {
+  if (service == "chatGpt") {
+    global.chatSessionGPT = [];
+  } else if (service == "gemini") {
+    global.chatSessionGemini = [];
+  } else if (service == "claude") {
+    global.chatSessionClaude = [];
+  }
+}
 
 // Helper function to create the prompt
 async function createPrompt(tempContext, inputText) {
@@ -204,7 +267,7 @@ async function handleChatAPIInput(panel, apiInfo, inputText, context, chatSessio
       content: prompt
     });
   }
-  let command = apiName == "Gemini" ? 'updateGeminiOutput' : 'updateChatGptOutput';
+  const command = getCommandByModel(apiInfo.model)
   utils.postMessageToWebview(panel, command, '<div class="loading"><img src="https://storage.googleapis.com/cryptitalk/loading.gif" alt="Loading..."></div>');
 
   try {
@@ -219,12 +282,13 @@ async function handleChatAPIInput(panel, apiInfo, inputText, context, chatSessio
 }
 
 // Re-usable function to handle the GPT API input
-async function handleGPTSubmitInput(panel, inputText, context) {
+async function handleGPTSubmitInput(panel, inputText, context, model, chatSession) {
   chatGptResponse = '';
   const apiInfo = {
     maxSessionLength: 10,
+    model: model,
     constructBodyFunc: (chatSessionGPT) => ({
-      model: "gpt-4o",
+      model: model,
       message: chatSessionGPT
     }),
     handleResponseFunc: async (response, chatSessionGPT) => {
@@ -238,7 +302,7 @@ async function handleGPTSubmitInput(panel, inputText, context) {
     endpoint: "https://main-wjaxre4ena-uc.a.run.app/streamchat"
   };
 
-  await handleChatAPIInput(panel, apiInfo, inputText, context, global.chatSessionGPT, chatGptResponse);
+  await handleChatAPIInput(panel, apiInfo, inputText, context, chatSession, chatGptResponse);
 }
 
 
@@ -265,5 +329,9 @@ async function handleGeminiSubmitInput(panel, inputText, context) {
 module.exports = {
   handleGPTSubmitInput,
   handleGeminiSubmitInput,
-  postDataToAPI
+  postDataToAPI,
+  getCommandByModel,
+  getCommandByService,
+  getSessionDataByService,
+  clearSessionDataByService
 };

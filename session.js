@@ -1,9 +1,10 @@
 const vscode = require('vscode');
 const utils = require('./utils');
+const chat = require('./chat')
 
 function handleShowSession(panel, service) {
   // Retrieve the session data and current index based on the service
-  const sessionData = service === "chatGpt" ? global.chatSessionGPT : global.chatSessionGemini;
+  let sessionData = chat.getSessionDataByService(service)
   const currentIndex = global.currentChatIndex[service];
 
   // Define totalEntries based on the length of the session data
@@ -13,7 +14,7 @@ function handleShowSession(panel, service) {
   let sessionText = sessionData.length > 0 ? sessionData[currentIndex].content : "Session is empty.";
 
   if (panel && panel.webview) {
-    let command = service === "chatGpt" ? 'updateChatGptOutput' : 'updateGeminiOutput';
+    let command = chat.getCommandByService(service)
     const sessionHtml = utils.formatMarkdown(sessionText, false);
     const navigationHtml = `
       <div style="display: flex; justify-content: center;">
@@ -31,12 +32,8 @@ function handleShowSession(panel, service) {
 
 function handleClearSession(panel, service) {
   // Clear the chat session array
-  let command = service == "chatGpt" ? 'updateChatGptOutput' : 'updateGeminiOutput';
-  if (service == "chatGpt") {
-    global.chatSessionGPT = [];
-  } else if (service == "gemini") {
-    global.chatSessionGemini = [];
-  }
+  let command = chat.getCommandByService(service)
+  chat.clearSessionDataByService(service)
   // Notify the webview that the session has been cleared
   if (panel && panel.webview) {
     panel.webview.postMessage({
