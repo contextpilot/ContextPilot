@@ -4,6 +4,7 @@ const path = require('path');
 const vscode = require('vscode');
 const { handleAddFileContext } = require('./file_ctx');
 const { postDataToAPI } = require('./chat');
+const chat = require('./chat')
 
 function update_common(oldText, newText) {
     // Split the text into lines for difflib
@@ -159,7 +160,7 @@ function handleApplySuggestions(panel, service) {
 
     // step 4: notify the webview that the suggestions have been applied
     if (panel && panel.webview) {
-        let command = service === "chatGpt" ? 'updateChatGptOutput' : 'updateGeminiOutput';
+        const command = chat.getCommandByService(service)
         let updatedFilesMessage = updatedFiles.length > 0 ? `Updated files: ${updatedFiles.join(', ')}` : 'No files were updated.';
         panel.webview.postMessage({
             command: command,

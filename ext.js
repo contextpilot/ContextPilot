@@ -17,7 +17,7 @@ const {
 } = require('./session');
 const {
   handleGPTSubmitInput,
-  handleGeminiSubmitInput,
+  getSessionDataByService,
 } = require('./chat');
 const { handleAddImgContext,
         handleAddDbContext
@@ -34,12 +34,7 @@ const {
 
 let panel;
 let currentPage = 1;
-global.chatSessionGPT = [];
-global.chatSessionGemini = [];
-global.currentChatIndex = {
-  chatGpt: 0,
-  gemini: 0,
-};
+
 
 async function addSecretKey() {
   const secretKey = await vscode.window.showInputBox({
@@ -179,9 +174,11 @@ function activate(context) {
                 break;
               case 'submitInput':
                 if (message.service === 'chatGpt') {
-                  handleGPTSubmitInput(panel, message.inputText, context);
+                  handleGPTSubmitInput(panel, message.inputText, context, 'gpt-4o', global.chatSessionGPT);
                 } else if (message.service === 'gemini') {
-                  handleGeminiSubmitInput(panel, message.inputText, context);
+                  handleGPTSubmitInput(panel, message.inputText, context, 'gemini-2.0-flash-exp', global.chatSessionGemini);
+                } else if (message.service === 'claude') {
+                  handleGPTSubmitInput(panel, message.inputText, context, 'claude-3-5-sonnet-latest', global.chatSessionClaude);
                 } else {
                   console.error('Unknown service:', message.service);
                 }
@@ -201,10 +198,7 @@ function activate(context) {
               case 'navigateChat':
                 const activeService = message.service;
                 const direction = message.direction;
-                const serviceSessionData =
-                  activeService === 'chatGpt'
-                    ? global.chatSessionGPT
-                    : global.chatSessionGemini;
+                const serviceSessionData = getSessionDataByService(activeService)
                 // Calculate new index based on direction
                 let newIndex = global.currentChatIndex[activeService];
                 if (direction === 'prev') {

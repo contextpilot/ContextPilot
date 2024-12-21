@@ -1,8 +1,9 @@
 const vscode = require('vscode');
 const utils = require('./utils');
+const chat = require('./chat')
 
 function handleShowContext(panel, service) {
-    let command = service == "chatGpt" ? 'updateChatGptOutput' : 'updateGeminiOutput';
+    const command = chat.getCommandByService(service)
     // Retrieve the current contextData
     const contextDataRaw = vscode.workspace.getConfiguration().get('tempContextCode');
     let output = [];
