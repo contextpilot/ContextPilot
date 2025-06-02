@@ -32,10 +32,10 @@ function getCommandByModel(model) {
   let command = 'updateChatGptOutput'; // default command
   
   switch (model) {
-    case 'gemini-2.0-flash-exp':
+    case 'gemini-2.5-pro-exp-03-25':
       command = 'updateGeminiOutput';
       break;
-    case 'claude-3-5-sonnet-latest':
+    case 'claude-3-7-sonnet-latest':
       command = 'updateClaudeOutput';
       break;
   }

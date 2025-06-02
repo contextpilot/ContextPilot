@@ -176,9 +176,9 @@ function activate(context) {
                 if (message.service === 'chatGpt') {
                   handleGPTSubmitInput(panel, message.inputText, context, 'gpt-4o', global.chatSessionGPT);
                 } else if (message.service === 'gemini') {
-                  handleGPTSubmitInput(panel, message.inputText, context, 'gemini-2.0-flash-exp', global.chatSessionGemini);
+                  handleGPTSubmitInput(panel, message.inputText, context, 'gemini-2.5-pro-preview-05-06', global.chatSessionGemini);
                 } else if (message.service === 'claude') {
-                  handleGPTSubmitInput(panel, message.inputText, context, 'claude-3-5-sonnet-latest', global.chatSessionClaude);
+                  handleGPTSubmitInput(panel, message.inputText, context, 'claude-3-7-sonnet-latest', global.chatSessionClaude);
                 } else {
                   console.error('Unknown service:', message.service);
                 }
