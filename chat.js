@@ -103,7 +103,7 @@ async function createPrompt(tempContext, inputText) {
       const jsonContent = JSON.parse(tempContext[i].context);
       if (jsonContent.dbtype && jsonContent.dbname && jsonContent.user && jsonContent.password && jsonContent.host && jsonContent.port) {
         try {
-          const { data } = await axios.post('https://main-wjaxre4ena-uc.a.run.app/dbschema', jsonContent);
+          const { data } = await axios.post('https://api.cryptitalk.com/dbschema', jsonContent);
           tempContext[i].context = formatDBSchema(data);
         } catch (error) {
           console.error('Failed to retrieve database schema:', error);
@@ -299,7 +299,7 @@ async function handleGPTSubmitInput(panel, inputText, context, model, chatSessio
       });
     },
     apiName: "GPT",
-    endpoint: "https://main-wjaxre4ena-uc.a.run.app/streamchat"
+    endpoint: "https://api.cryptitalk.com/streamchat"
   };
 
   await handleChatAPIInput(panel, apiInfo, inputText, context, chatSession, chatGptResponse);
@@ -321,7 +321,7 @@ async function handleGeminiSubmitInput(panel, inputText, context) {
       });
     },
     apiName: "Gemini",
-    endpoint: "https://main-wjaxre4ena-uc.a.run.app/streamchat"
+    endpoint: "https://api.cryptitalk.com/streamchat"
   };
   await handleChatAPIInput(panel, apiInfo, inputText, context, global.chatSessionGemini, chatGeminiResponse);
 }

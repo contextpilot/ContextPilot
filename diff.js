@@ -45,7 +45,7 @@ async function applyCustomChanges(oldText, newText) {
     try {
         // Send the old and new text to the server
         const message = { oldText, newText };
-        const response = await postDataToAPI("https://main-wjaxre4ena-uc.a.run.app/diffcollect", { 'Content-Type': 'application/json' }, message);
+        const response = await postDataToAPI("https://api.cryptitalk.com/diffcollect", { 'Content-Type': 'application/json' }, message);
 
         console.log(typeof response.data); // Log the type
         console.log(response.data); // Log the actual data
